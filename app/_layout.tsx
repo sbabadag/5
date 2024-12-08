@@ -13,6 +13,7 @@ import '../config/firebaseConfig';
 import { View, Text, Image, StyleSheet, Platform, TouchableOpacity, Animated, Dimensions, PanResponder } from 'react-native';
 import { getDatabase, ref, onValue, set } from 'firebase/database';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
+import CategorySelection from '../app/(tabs)/CategorySelection'; // Adjust the path as needed
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -323,6 +324,17 @@ export default function RootLayout() {
           <Stack.Screen 
             name="Profile" 
             component={ProfileScreen}
+            options={{
+              headerLeft: () => (
+                <TouchableOpacity onPress={() => navigation.goBack()}>
+                  <Ionicons name="arrow-back-outline" size={24} color="black" />
+                </TouchableOpacity>
+              ),
+            }} 
+          />
+                    <Stack.Screen 
+            name="CategorySelection" 
+            component={CategorySelection}
             options={{
               headerLeft: () => (
                 <TouchableOpacity onPress={() => navigation.goBack()}>

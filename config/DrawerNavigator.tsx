@@ -1,6 +1,6 @@
 import React from 'react';
 import { createDrawerNavigator } from '@react-navigation/drawer';
-import ProfileScreen from './(tabs)/profile'; // Adjust the import path as necessary
+import ProfileScreen from '../app/(tabs)/profile'; // Adjust the import path as necessary
 
 const Drawer = createDrawerNavigator();
 

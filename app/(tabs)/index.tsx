@@ -32,7 +32,7 @@ interface Product {
   userId: string;
   status: 'draft' | 'published';
   createdAt: number;
-  category: string; // Add category property
+  categories: string[]; // Update categories property
 }
 
 interface Bid {
@@ -138,9 +138,21 @@ const categories = [
   { name: 'Clothing', icon: 'tshirt' },
   { name: 'Books', icon: 'book' },
   { name: 'Toys', icon: 'puzzle-piece' },
+  { name: 'Car', icon: 'car' },
+  { name: 'Phone', icon: 'mobile' },
+  { name: 'House & Living', icon: 'home' },
+  { name: 'Motorcycle', icon: 'motorcycle' },
+  { name: 'Personal Care', icon: 'heartbeat' },
+  { name: 'Mother & Baby', icon: 'baby' },
+  { name: 'Hobby & Books', icon: 'book-reader' },
+  { name: 'Office & Stationary', icon: 'briefcase' },
+  { name: 'Sports & Outdoor', icon: 'futbol' },
+  { name: 'Construction Market & Garden', icon: 'tree' },
+  { name: 'Pet Shop', icon: 'paw' },
+  { name: 'Antique', icon: 'hourglass-half' },
 ]; // Define categories list with icons
 
-const ProductsScreen = () => {
+const ProductsScreen = ({ navigation }: { navigation: any }) => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
@@ -170,9 +182,10 @@ const ProductsScreen = () => {
     const auth = getAuth();
     const user = auth.currentUser;
 
-    console.log('Current user:', user?.uid);
+    console.log('Fetching products...');
 
     const unsubscribe = onValue(productsRef, (snapshot) => {
+      console.log('Products fetched');
       setLoading(true);
       const data = snapshot.val();
       if (!data) {
@@ -449,7 +462,8 @@ const ProductsScreen = () => {
   const filteredProducts = products.filter(product => 
     (product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     product.description.toLowerCase().includes(searchTerm.toLowerCase())) &&
-    (selectedCategories.length === 0 || selectedCategories.includes(product.category))
+    (selectedCategories.length === 0 || 
+    (product.categories && Array.isArray(product.categories) && product.categories.some(category => selectedCategories.includes(category))))
   );
 
   if (loading) {
@@ -470,19 +484,12 @@ const ProductsScreen = () => {
           onChangeText={setSearchTerm}
         />
       </View>
-      <View style={styles.categoriesContainer}>
-        {categories.map(category => (
-          <TouchableOpacity key={category.name} style={styles.categoryItem} onPress={() => handleCategorySelect(category.name)}>
-            <FontAwesome
-              name={selectedCategories.includes(category.name) ? 'check-square' : 'square-o'}
-              size={24}
-              color="black"
-            />
-            <FontAwesome6 name={category.icon as any} size={24} color="black" style={styles.categoryIcon} />
-            <Text style={styles.categoryText}>{category.name}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+      <TouchableOpacity
+        style={styles.categoryButton}
+        onPress={() => navigation.navigate('CategorySelection', { selectedCategories, setSelectedCategories })}
+      >
+        <Text style={styles.categoryButtonText}>Select Categories</Text>
+      </TouchableOpacity>
       <ScrollView style={styles.container}>
         <View style={styles.cardsWrapper}>
           {filteredProducts.length > 0 ? (
@@ -580,8 +587,6 @@ const ProductsScreen = () => {
           </View>
         </View>
       </Modal>
-      {/* Remove the logo container */}
-
     </View> 
   );
 }
@@ -774,25 +779,16 @@ const styles = StyleSheet.create({
     color: '#888',
     marginRight: 4,
   },
-  categoriesContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    padding: 16,
-    backgroundColor: 'white',
-  },
-  categoryItem: {
-    flexDirection: 'row',
+  categoryButton: {
+    backgroundColor: '#007AFF',
+    padding: 12,
+    borderRadius: 8,
     alignItems: 'center',
-    marginRight: 16,
-    marginBottom: 8,
+    margin: 16,
   },
-  categoryIcon: {
-    marginLeft: 8,
-    marginRight: 8,
-  },
-  categoryText: {
-    fontSize: 16,
-    marginLeft: 8,
+  categoryButtonText: {
+    color: 'white',
+    fontWeight: '600',
   },
   noProductsText: {
     textAlign: 'center',

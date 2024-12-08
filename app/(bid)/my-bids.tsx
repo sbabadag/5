@@ -164,16 +164,6 @@ export default function MyBidsScreen() {
   
     return (
       <View key={bid.id} style={styles.bidCard}>
-        <TouchableOpacity
-          style={styles.likeButton}
-          onPress={() => handleLikeProduct(targetProduct.id)}
-        >
-          <FontAwesome
-            name={likedProducts.includes(targetProduct.id) ? 'heart' : 'heart-o'}
-            size={24}
-            color="red"
-          />
-        </TouchableOpacity>
         <TouchableOpacity 
           style={styles.cardContent}
           onPress={() => router.push({

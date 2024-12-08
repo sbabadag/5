@@ -64,7 +64,10 @@ export default function BidsOnMyProductsScreen() {
     const bidsRef = ref(db, 'bids');
     const productsRef = ref(db, 'products');
 
+    console.log('Fetching bids...');
+
     const unsubscribeBids = onValue(bidsRef, (snapshot) => {
+      console.log('Bids fetched');
       const data = snapshot.val();
       if (data) {
         const userBids = Object.values(data).filter((bid) => {
@@ -77,6 +80,7 @@ export default function BidsOnMyProductsScreen() {
     });
 
     const unsubscribeProducts = onValue(productsRef, (snapshot) => {
+      console.log('Products fetched');
       const data = snapshot.val();
       if (data) {
         const allProducts: { [key: string]: Product } = {};
@@ -208,16 +212,6 @@ export default function BidsOnMyProductsScreen() {
               <View key={bid.id} style={[styles.card, { width: cardWidth }]}>
                 {product && (
                   <View style={styles.productSection}>
-                    <TouchableOpacity
-                      style={styles.likeButton}
-                      onPress={() => handleLikeProduct(product.id)}
-                    >
-                      <FontAwesome
-                        name={likedProducts.includes(product.id) ? 'heart' : 'heart-o'}
-                        size={24}
-                        color="red"
-                      />
-                    </TouchableOpacity>
                     <Text style={styles.sectionTitle}>Product You Want</Text>
                     <View style={styles.productCard}>
                       <Image source={{ uri: product.images[0] }} style={styles.productImage} />

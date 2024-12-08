@@ -31,7 +31,25 @@ interface Product {
   categories: string[]; // Change category to categories array
 }
 
-const categories = ['Electronics', 'Furniture', 'Clothing', 'Books', 'Toys']; // Define categories list
+const categories = [
+  'Electronics', 
+  'Furniture', 
+  'Clothing', 
+  'Books', 
+  'Toys', 
+  'Car', 
+  'Phone', 
+  'House & Living', 
+  'Motorcycle', 
+  'Personal Care', 
+  'Mother & Baby', 
+  'Hobby & Books', 
+  'Office & Stationary', 
+  'Sports & Outdoor', 
+  'Construction Market & Garden', 
+  'Pet Shop', 
+  'Antique'
+]; // Define categories list
 
 export default function MyProductsScreen() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -431,16 +449,6 @@ export default function MyProductsScreen() {
                   })
                 ]}
               >
-                <TouchableOpacity
-                  style={styles.likeButton}
-                  onPress={() => handleLikeProduct(product.id)}
-                >
-                  <FontAwesome
-                    name={likedProducts.includes(product.id) ? 'heart' : 'heart-o'}
-                    size={24}
-                    color="red"
-                  />
-                </TouchableOpacity>
                 <Image
                   source={{ uri: product.images?.[0] || 'https://via.placeholder.com/150' }}
                   style={styles.cardImage}
