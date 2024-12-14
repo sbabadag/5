@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext, useCallback } from 'react';
 import {
   View,
   Text,
@@ -20,6 +20,8 @@ import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import * as Notifications from 'expo-notifications';
 import { Checkbox } from 'react-native-paper';
 import { FontAwesome, FontAwesome6,FontAwesome5  } from '@expo/vector-icons';
+import { useCategories } from '../CategorySelection'; // Update import path
+import { categories } from '../data/categories';
 
 // Define the Product type
 interface Product {
@@ -132,26 +134,6 @@ const MyProductsScreen = ({ selectedProducts, setSelectedProducts }: { selectedP
   );
 };
 
-const categories = [
-  { name: 'Electronics', icon: 'tv' },
-  { name: 'Furniture', icon: 'couch' },
-  { name: 'Clothing', icon: 'tshirt' },
-  { name: 'Books', icon: 'book' },
-  { name: 'Toys', icon: 'puzzle-piece' },
-  { name: 'Car', icon: 'car' },
-  { name: 'Phone', icon: 'mobile' },
-  { name: 'House & Living', icon: 'home' },
-  { name: 'Motorcycle', icon: 'motorcycle' },
-  { name: 'Personal Care', icon: 'heartbeat' },
-  { name: 'Mother & Baby', icon: 'baby' },
-  { name: 'Hobby & Books', icon: 'book-reader' },
-  { name: 'Office & Stationary', icon: 'briefcase' },
-  { name: 'Sports & Outdoor', icon: 'futbol' },
-  { name: 'Construction Market & Garden', icon: 'tree' },
-  { name: 'Pet Shop', icon: 'paw' },
-  { name: 'Antique', icon: 'hourglass-half' },
-]; // Define categories list with icons
-
 const ProductsScreen = ({ navigation }: { navigation: any }) => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -164,16 +146,34 @@ const ProductsScreen = ({ navigation }: { navigation: any }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [unresultedBidsCount, setUnresultedBidsCount] = useState(0);
   const [likedProducts, setLikedProducts] = useState<string[]>([]);
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const { selectedCategories, setSelectedCategories } = useCategories(); // Use hook instead
 
-  const handleCategorySelect = (category: string) => {
-    setSelectedCategories(prev => {
-      const updatedSelectedCategories = prev.includes(category)
-        ? prev.filter(cat => cat !== category)
-        : [...prev, category];
-      return updatedSelectedCategories;
+
+
+  const filterProducts = useCallback((products: Product[], categories: string[], searchTerm: string) => {
+    console.log('Filtering products with categories:', categories);
+    return products.filter(product => {
+      const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.description.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesCategory = categories.length === 0 || 
+        (product.categories && 
+         Array.isArray(product.categories) && 
+         product.categories.some(cat => categories.includes(cat)));
+      
+      console.log(`Product ${product.name} - Categories:`, product.categories);
+      console.log(`Matches category: ${matchesCategory}`);
+      
+      return matchesSearch && matchesCategory;
     });
-  };
+  }, []);
+
+  // Update filtered products when categories change
+  useEffect(() => {
+    console.log('Selected categories changed:', selectedCategories);
+  }, [selectedCategories]);
+
+  const filteredProducts = filterProducts(products, selectedCategories, searchTerm);
 
   // Fetch all products except user's own
   useEffect(() => {
@@ -459,13 +459,6 @@ const ProductsScreen = ({ navigation }: { navigation: any }) => {
     return Math.floor(averagePrice / 100);
   };
 
-  const filteredProducts = products.filter(product => 
-    (product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.description.toLowerCase().includes(searchTerm.toLowerCase())) &&
-    (selectedCategories.length === 0 || 
-    (product.categories && Array.isArray(product.categories) && product.categories.some(category => selectedCategories.includes(category))))
-  );
-
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -486,7 +479,7 @@ const ProductsScreen = ({ navigation }: { navigation: any }) => {
       </View>
       <TouchableOpacity
         style={styles.categoryButton}
-        onPress={() => navigation.navigate('CategorySelection', { selectedCategories, setSelectedCategories })}
+        onPress={() => navigation.navigate('CategorySelection')}
       >
         <Text style={styles.categoryButtonText}>Select Categories</Text>
       </TouchableOpacity>

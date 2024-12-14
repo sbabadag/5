@@ -13,8 +13,8 @@ import '../config/firebaseConfig';
 import { View, Text, Image, StyleSheet, Platform, TouchableOpacity, Animated, Dimensions, PanResponder } from 'react-native';
 import { getDatabase, ref, onValue, set } from 'firebase/database';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
-import CategorySelection from '../app/(tabs)/CategorySelection'; // Adjust the path as needed
-
+import CategorySelection from './CategorySelection'; // Adjust the path as needed
+import { CategoryProvider } from './CategorySelection'; // Adjust the path as needed
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 const screenWidth = Dimensions.get('window').width;
@@ -269,6 +269,7 @@ export default function RootLayout() {
   }, []);
 
   return (
+    <CategoryProvider>
     <Stack.Navigator>
       {!isAuthenticated ? (
         <Stack.Screen 
@@ -346,6 +347,7 @@ export default function RootLayout() {
         </>
       )}
     </Stack.Navigator>
+    </CategoryProvider>
   );
 }
 
