@@ -8,7 +8,7 @@ import HomeScreen from '../app/(tabs)/index';
 import MyBidsScreen from '../app/(bid)/my-bids';
 import MyProductsScreen from './(tabs)/my-products';
 import BidsOnMyProductsScreen from '../app/(bid)/bids-on-my-products';
-import ProfileScreen from '../app/(tabs)/profile';
+import ProfileScreen from './(tabs)/profile';
 import '../config/firebaseConfig';
 import { View, Text, Image, StyleSheet, Platform, TouchableOpacity, Animated, Dimensions, PanResponder } from 'react-native';
 import { getDatabase, ref, onValue, set } from 'firebase/database';

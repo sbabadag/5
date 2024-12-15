@@ -1,3 +1,4 @@
-web: node expo-router/entry
+web: node App.tsx
+
 
 
