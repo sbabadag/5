@@ -7,6 +7,8 @@ import { Platform } from 'react-native';
 
 // ...existing code...
 
+const PORT = process.env.PORT || 3000;
+
 const registerForPushNotificationsAsync = async () => {
   let token;
   if (Constants.isDevice) {
