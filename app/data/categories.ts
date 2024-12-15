@@ -17,3 +17,5 @@ export const categories = [
   { name: 'Pet Shop', icon: 'paw' },
   { name: 'Antique', icon: 'hourglass-half' },
 ];
+
+export default categories;

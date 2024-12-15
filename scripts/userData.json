@@ -1,0 +1,18 @@
+{
+  "views": null,
+  "purchases": null,
+  "ratings": {
+    "rNwghIJtaMSu3BPkpk63kitdXvg1": {
+      "-OCT2Z3hkH1vbb9ex3lE": {
+        "productId": "-OCT2Z3hkH1vbb9ex3lE",
+        "ratedAt": 1734255084513,
+        "rating": 5
+      },
+      "-OCUY1Nq1j5OJDhWNTD7": {
+        "productId": "-OCUY1Nq1j5OJDhWNTD7",
+        "ratedAt": 1734255076887,
+        "rating": 3
+      }
+    }
+  }
+}

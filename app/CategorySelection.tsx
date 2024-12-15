@@ -1,7 +1,7 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { ScrollView, Text, StyleSheet, View, Switch, TouchableOpacity } from 'react-native';
 import FontAwesome6 from 'react-native-vector-icons/FontAwesome6';
-import { categories } from './data/categories';
+import categories from './data/categories'; // Adjust the import to use the default export
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Context Definition

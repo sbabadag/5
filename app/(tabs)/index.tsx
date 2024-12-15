@@ -21,7 +21,8 @@ import * as Notifications from 'expo-notifications';
 import { Checkbox } from 'react-native-paper';
 import { FontAwesome, FontAwesome6,FontAwesome5  } from '@expo/vector-icons';
 import { useCategories } from '../CategorySelection'; // Update import path
-import { categories } from '../data/categories';
+import categories from '../data/categories'; // Adjust the import to use the default export
+import ProductRating from '../components/ProductRating'; // Import ProductRating component
 
 // Define the Product type
 interface Product {
@@ -136,6 +137,7 @@ const MyProductsScreen = ({ selectedProducts, setSelectedProducts }: { selectedP
 
 const ProductsScreen = ({ navigation }: { navigation: any }) => {
   const [products, setProducts] = useState<Product[]>([]);
+  const [recommendedProducts, setRecommendedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [targetProductId, setTargetProductId] = useState<string | null>(null);
@@ -168,7 +170,47 @@ const ProductsScreen = ({ navigation }: { navigation: any }) => {
     });
   }, []);
 
-  // Update filtered products when categories change
+  // Fetch recommended products
+  const fetchRecommendedProducts = async () => {
+    const auth = getAuth();
+    const user = auth.currentUser;
+    if (!user) return;
+
+    const db = getDatabase();
+    const recommendationsRef = ref(db, `recommendations/${user.uid}`);
+
+    onValue(recommendationsRef, (snapshot) => {
+      const data = snapshot.val() || [];
+      setRecommendedProducts(data);
+    });
+  };
+
+  const fetchRecommendations = async () => {
+    const auth = getAuth();
+    const user = auth.currentUser;
+    if (!user) return;
+
+    try {
+        const response = await fetch('https://your-app-name.herokuapp.com/recommend', { // Replace with your actual server address
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ user_id: user.uid }),
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch recommendations');
+        }
+
+        const recommendations = await response.json();
+        console.log('Recommendations:', recommendations); // Add debug log
+        setRecommendedProducts(recommendations);
+    } catch (error) {
+        console.error('Error fetching recommendations:', error);
+    }
+};
+
   useEffect(() => {
     console.log('Selected categories changed:', selectedCategories);
   }, [selectedCategories]);
@@ -225,6 +267,8 @@ const ProductsScreen = ({ navigation }: { navigation: any }) => {
       console.error('Database error:', error);
       setLoading(false);
     });
+
+    fetchRecommendations(); // Fetch recommendations when the component mounts
 
     return () => unsubscribe();
   }, []); // Empty dependency array to run only once
@@ -388,6 +432,9 @@ const ProductsScreen = ({ navigation }: { navigation: any }) => {
   
     try {
       await set(newBidRef, newBid);
+      // Log product purchase
+      await logProductPurchase(targetProductId);
+
       // Send notification to the target product owner
       const notificationRef = ref(db, `notifications/${targetProduct.userId}`);
       const newNotificationRef = push(notificationRef);
@@ -413,6 +460,54 @@ const ProductsScreen = ({ navigation }: { navigation: any }) => {
     } catch (error) {
       console.error('Error submitting bid:', error);
       Alert.alert('Error', 'There was an error submitting your bid. Please try again.');
+    }
+  };
+
+  const logProductView = async (productId: string) => {
+    const auth = getAuth();
+    const user = auth.currentUser;
+    if (!user) return;
+
+    const db = getDatabase();
+    const userViewsRef = ref(db, `userViews/${user.uid}/${productId}`);
+    const snapshot = await get(userViewsRef);
+
+    if (snapshot.exists()) {
+      await set(userViewsRef, {
+        ...snapshot.val(),
+        lastViewed: Date.now(),
+        viewCount: snapshot.val().viewCount + 1,
+      });
+    } else {
+      await set(userViewsRef, {
+        productId,
+        lastViewed: Date.now(),
+        viewCount: 1,
+      });
+    }
+  };
+
+  const logProductPurchase = async (productId: string) => {
+    const auth = getAuth();
+    const user = auth.currentUser;
+    if (!user) return;
+
+    const db = getDatabase();
+    const userPurchasesRef = ref(db, `userPurchases/${user.uid}/${productId}`);
+    const snapshot = await get(userPurchasesRef);
+
+    if (snapshot.exists()) {
+      await set(userPurchasesRef, {
+        ...snapshot.val(),
+        lastPurchased: Date.now(),
+        purchaseCount: snapshot.val().purchaseCount + 1,
+      });
+    } else {
+      await set(userPurchasesRef, {
+        productId,
+        lastPurchased: Date.now(),
+        purchaseCount: 1,
+      });
     }
   };
 
@@ -459,6 +554,10 @@ const ProductsScreen = ({ navigation }: { navigation: any }) => {
     return Math.floor(averagePrice / 100);
   };
 
+  useEffect(() => {
+    console.log('Recommended Products:', recommendedProducts); // Add debug log
+  }, [recommendedProducts]);
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -484,6 +583,64 @@ const ProductsScreen = ({ navigation }: { navigation: any }) => {
         <Text style={styles.categoryButtonText}>Select Categories</Text>
       </TouchableOpacity>
       <ScrollView style={styles.container}>
+        <Text style={styles.title}>Recommended Products</Text>
+        <View style={styles.cardsWrapper}>
+          {recommendedProducts.length > 0 ? (
+            recommendedProducts.map((product) => (
+              <TouchableOpacity
+                key={product.id}
+                style={[styles.card]}
+                onPress={() => {
+                  setTargetProductId(product.id);
+                  setModalVisible(true);
+                  logProductView(product.id); // Log product view
+                }}
+              >
+                <Image
+                  source={{ uri: product.images[0] }}
+                  style={styles.cardImage}
+                />
+                <View style={styles.cardContent}>
+                  <Text style={styles.productName}>{product.name}</Text>
+                  <Text style={styles.productDescription}>{product.description}</Text>
+                  <Text style={styles.productPrice}>{product.priceStart} TL - {product.priceEnd} TL</Text>
+                  <View style={styles.coinContainer}>
+                    <Text style={styles.productCoins}>Coins to bid: {calculateCoins(product.priceStart, product.priceEnd)}</Text>
+                    <FontAwesome6 name="coins" size={16} color="#FFD700" />
+                  </View>
+                  <Text style={styles.productCreatedAt}>
+                    Created: {new Date(product.createdAt).toLocaleDateString()}
+                  </Text>
+                  <Text style={styles.bidCount}>
+                    Bids: {bidCounts[product.id] || 0}
+                  </Text>
+                  <View style={styles.ownerInfo}>
+                    <Image
+                      source={{ uri: ownerPhotos[product.userId]?.photoUrl || 'https://placeholder.com/user' }}
+                      style={styles.ownerPhoto}
+                    />
+                    <Text style={styles.ownerNickname}>
+                      {ownerPhotos[product.userId]?.nickname || 'NoName'}
+                    </Text>
+                  </View>
+                  <TouchableOpacity
+                    style={[styles.bidButton, { marginTop: 8 }]}
+                    onPress={() => {
+                      setTargetProductId(product.id);
+                      setModalVisible(true);
+                    }}
+                  >
+                    <Text style={styles.buttonText}>Place Bid</Text>
+                  </TouchableOpacity>
+                  <ProductRating productId={product.id} /> {/* Add ProductRating component */}
+                </View>
+              </TouchableOpacity>
+            ))
+          ) : (
+            <Text style={styles.noProductsText}>No recommended products available</Text>
+          )}
+        </View>
+        <Text style={styles.title}>All Products</Text>
         <View style={styles.cardsWrapper}>
           {filteredProducts.length > 0 ? (
             filteredProducts.map((product) => (
@@ -496,6 +653,7 @@ const ProductsScreen = ({ navigation }: { navigation: any }) => {
                 onPress={() => {
                   setTargetProductId(product.id);
                   setModalVisible(true);
+                  logProductView(product.id); // Log product view
                 }}
               >
                 <TouchableOpacity
@@ -544,6 +702,7 @@ const ProductsScreen = ({ navigation }: { navigation: any }) => {
                   >
                     <Text style={styles.buttonText}>Place Bid</Text>
                   </TouchableOpacity>
+                  <ProductRating productId={product.id} /> {/* Add ProductRating component */}
                 </View>
               </TouchableOpacity>
             ))
@@ -789,6 +948,7 @@ const styles = StyleSheet.create({
     color: '#666',
     marginTop: 32,
   },
+
 });
 
 export default ProductsScreen;
