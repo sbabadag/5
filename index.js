@@ -1,41 +1,18 @@
-const express = require('express')
-const path = require('path')
-const cool = require('cool-ascii-faces')
+// File: index.js
+const express = require('express');
+const path = require('path');
 
-const port = process.env.PORT || 5006
+const app = express();
+const port = process.env.PORT || 3000;
 
-const app = express()
+// Serve static files from the web build folder
+app.use(express.static(path.join(__dirname, 'web-build')));
 
-app.use(express.static(path.join(__dirname, 'public')))
-app.set('views', path.join(__dirname, 'views'))
-app.set('view engine', 'ejs')
+// Fallback to index.html for SPA routes
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'web-build', 'index.html'));
+});
 
-app.get('/', (req, res) => {
-  res.render('pages/index')
-})
-
-app.get('/cool', (req, res) => {
-  res.send(cool())
-})
-
-app.get('/times', (req, res) => {
-  const times = process.env.TIMES || 5
-  let result = ''
-  for (i = 0; i < times; i++) {
-    result += i + ' '
-  }
-  res.send(result)
-})
-
-const server = app.listen(port, () => {
-  console.log(`Listening on ${port}`)
-})
-
-process.on('SIGTERM', async () => {
-  console.log('SIGTERM signal received: gracefully shutting down')
-  if (server) {
-    server.close(() => {
-      console.log('HTTP server closed')
-    })
-  }
-})
+app.listen(port, () => {
+  console.log(`Server running on port ${port}`);
+});
