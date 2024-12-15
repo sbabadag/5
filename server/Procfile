@@ -1,4 +1,4 @@
-web: node App.tsx
+web: npm start
 
 
 
