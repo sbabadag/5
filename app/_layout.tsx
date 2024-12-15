@@ -158,7 +158,10 @@ function TabNavigator() {
                 iconName = 'clipboard-outline'; 
                 onMyBidsbadgeCount = pendingBidsOnMyProductsCount; // Set badge count for BOM
                 break;
-              case 'Profile': iconName = 'person-outline'; break; // Add icon for Profile
+              case 'Profile': 
+                iconName = 'person-outline'; 
+                badgeCount = notificationCount; // Set badge count for Profile
+                break; // Add icon for Profile
               default: iconName = 'ellipse-outline';
             }
             return (
@@ -172,6 +175,11 @@ function TabNavigator() {
                 {iconName === 'clipboard-outline' && onMyBidsbadgeCount > 0 && (
                   <View style={styles.tabBadge}>
                     <Text style={styles.tabBadgeText}>{onMyBidsbadgeCount}</Text>
+                  </View>
+                )}
+                {iconName === 'person-outline' && badgeCount > 0 && (
+                  <View style={styles.tabBadge}>
+                    <Text style={styles.tabBadgeText}>{badgeCount}</Text>
                   </View>
                 )}
               </View>
@@ -232,6 +240,11 @@ function TabNavigator() {
         <TouchableOpacity style={styles.drawerItem} onPress={() => navigateToScreen('Profile')}>
           <Ionicons name="person-outline" size={24} color="black" />
           <Text style={styles.drawerItemText}>Profile</Text>
+          {notificationCount > 0 && (
+            <View style={styles.drawerBadge}>
+              <Text style={styles.drawerBadgeText}>{notificationCount}</Text>
+            </View>
+          )}
         </TouchableOpacity>
       </Animated.View>
     </View>
